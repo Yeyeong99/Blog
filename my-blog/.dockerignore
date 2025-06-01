@@ -1,0 +1,15 @@
+.git
+.gitignore
+node_modules
+Dockerfile
+.dockerignore
+.next
+README.md
+.env*
+.husky
+.vscode
+coverage
+.eslintrc*
+jest.config.*
+.prettier*
+docker-compose.yml 
