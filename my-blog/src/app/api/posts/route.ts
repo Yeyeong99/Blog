@@ -1,25 +1,33 @@
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
+import slugify from 'slugify';
 
 export async function POST(request: Request) {
   try {
-    const json = await request.json();
+    const body = await request.json();
+    const { title, description, content, tags, imageUrl } = body;
+
+    // Create a URL-friendly slug from the title
+    const slug = slugify(title, { lower: true, strict: true });
+
+    // Create the post
     const post = await prisma.post.create({
       data: {
-        title: json.title,
-        description: json.description,
-        content: json.content,
-        imageUrl: json.imageUrl,
-        tags: json.tags.split(',').map((tag: string) => tag.trim()),
-        slug: json.title.toLowerCase().replace(/[^a-zA-Z0-9]+/g, '-'),
+        title,
+        description,
+        content,
+        tags: Array.isArray(tags) ? tags : [],
+        imageUrl,
+        slug,
         published: true,
       },
     });
 
     return NextResponse.json(post);
-  } catch (error: any) {
+  } catch (error) {
+    console.error('Error creating post:', error);
     return NextResponse.json(
-      { error: 'Error creating post', details: error.message },
+      { error: 'Failed to create post' },
       { status: 500 }
     );
   }
