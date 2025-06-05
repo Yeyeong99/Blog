@@ -9,7 +9,7 @@ export async function generateStaticParams() {
     select: { slug: true }
   });
   
-  return posts.map((post) => ({
+  return posts.map((post: { slug: string }) => ({
     slug: post.slug,
   }));
 }
@@ -55,7 +55,7 @@ export default async function BlogPostPage({
         <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
         
         <div className="flex gap-2 mb-6">
-          {post.tags.map((tag) => (
+          {post.tags.map((tag: string) => (
             <span
               key={tag}
               className="text-sm font-medium text-gray-600 bg-gray-100 px-3 py-1 rounded-full"

@@ -1,23 +1,28 @@
-import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 import slugify from 'slugify';
+import { z } from 'zod';
+
+const PostSchema = z.object({
+  title: z.string().min(1),
+  description: z.string().min(1),
+  content: z.string().min(1),
+  tags: z.array(z.string()),
+  imageUrl: z.string().url().optional(),
+});
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { title, description, content, tags, imageUrl } = body;
+    const validatedData = PostSchema.parse(body);
 
     // Create a URL-friendly slug from the title
-    const slug = slugify(title, { lower: true, strict: true });
+    const slug = slugify(validatedData.title, { lower: true, strict: true });
 
     // Create the post
     const post = await prisma.post.create({
       data: {
-        title,
-        description,
-        content,
-        tags: Array.isArray(tags) ? tags : [],
-        imageUrl,
+        ...validatedData,
         slug,
         published: true,
       },
@@ -26,6 +31,12 @@ export async function POST(request: Request) {
     return NextResponse.json(post);
   } catch (error) {
     console.error('Error creating post:', error);
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Invalid data', details: error.errors },
+        { status: 400 }
+      );
+    }
     return NextResponse.json(
       { error: 'Failed to create post' },
       { status: 500 }
@@ -41,9 +52,10 @@ export async function GET() {
     });
 
     return NextResponse.json(posts);
-  } catch (error: any) {
+  } catch (error) {
+    console.error('Error fetching posts:', error);
     return NextResponse.json(
-      { error: 'Error fetching posts', details: error.message },
+      { error: 'Failed to fetch posts' },
       { status: 500 }
     );
   }

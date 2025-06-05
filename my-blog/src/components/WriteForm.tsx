@@ -3,6 +3,14 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+interface PostFormData {
+  title: string;
+  description: string;
+  content: string;
+  tags: string[];
+  imageUrl?: string;
+}
+
 export default function WriteForm() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -12,12 +20,12 @@ export default function WriteForm() {
     setIsSubmitting(true);
 
     const formData = new FormData(e.currentTarget);
-    const data = {
-      title: formData.get('title'),
-      description: formData.get('description'),
-      content: formData.get('content'),
-      tags: (formData.get('tags') as string).split(',').map(tag => tag.trim()),
-      imageUrl: formData.get('imageUrl'),
+    const data: PostFormData = {
+      title: formData.get('title') as string,
+      description: formData.get('description') as string,
+      content: formData.get('content') as string,
+      tags: (formData.get('tags') as string)?.split(',').map(tag => tag.trim()).filter(Boolean) || [],
+      imageUrl: formData.get('imageUrl') as string || undefined,
     };
 
     try {
